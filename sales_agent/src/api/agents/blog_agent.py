@@ -42,12 +42,13 @@ async def run_blog_pipeline(query: str):
     initial_input = {"input_niche": query}
 
     print("Running pipeline...")
-    #result= graph.invoke(initial_input, thread_config)
 
-    for event in graph.stream(initial_input, thread_config):
-        print(f"Completed node: {list(event.keys())[0]}")
-    print(f"Current state: {graph.get_state(thread_config)}")
-    final_blog = graph.get_state(thread_config)["agent_4"]
+    final_blog = graph.invoke(initial_input, thread_config)
+
+    # for event in graph.stream(initial_input, thread_config):
+    #     print(f"Completed node: {list(event.keys())[0]}")
+    # print(f"Current state: {graph.get_state(thread_config)}")
+    # final_blog = graph.get_state(thread_config)["agent_4"]
     
     print(f"Final blog content: { final_blog["final_blog"]}")
     return {"final_blog": final_blog["final_blog"]}
