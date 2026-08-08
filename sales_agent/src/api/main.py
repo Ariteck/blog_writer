@@ -43,10 +43,7 @@ async def invoke_blog_agent(request: AgentRequest):
         query_text = request.query
         print(f"Received query: {query_text}")
         # Await the coroutine directly with a 30-second timeout
-        agent_result = await asyncio.wait_for(
-            run_blog_pipeline(query_text),
-            timeout=30.0
-        )
+        agent_result = await  run_blog_pipeline(query_text)
         return agent_result
     except asyncio.TimeoutError:
         raise HTTPException(

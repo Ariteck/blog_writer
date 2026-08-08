@@ -5,6 +5,7 @@ from langchain_core.tools import tool
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.checkpoint.memory import MemorySaver
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
@@ -49,13 +50,15 @@ builder.add_edge(START, "chatbot")
 builder.add_conditional_edges("chatbot", tools_condition)
 builder.add_edge("tools", "chatbot")
 
-graph = builder.compile()
+memory = MemorySaver()
+graph = builder.compile(checkpointer=memory)
 
 # 5. Run Agent
 async def run_agent(input_text: str):
     print(f"Input to Agent: {input_text}")
     initial_state: AgentState = {"input_text": input_text}
-    result =  await graph.ainvoke(initial_state)
+    thread_config = {"configurable": {"thread_id": "sales_agent_run"}}
+    result = await graph.ainvoke(initial_state, thread_config)
     print(f"Graph Result: {result['messages']}")
    # Extract the string content from AIMessage
     last_message = result['messages'][-1].content

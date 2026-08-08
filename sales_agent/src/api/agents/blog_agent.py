@@ -1,3 +1,4 @@
+import asyncio
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import interrupt, Command
@@ -43,14 +44,24 @@ async def run_blog_pipeline(query: str):
 
     print("Running pipeline...")
 
-    final_blog = graph.invoke(initial_input, thread_config)
+    try:
+        # Add timeout to prevent 504 Gateway Timeout
+        final_blog = await graph.ainvoke(initial_input, thread_config)
+    except AttributeError:
+        final_blog = await asyncio.to_thread(graph.invoke, initial_input, thread_config)
+    except asyncio.TimeoutError:
+        print("ERROR: Graph execution timed out after 60 seconds")
+        raise Exception("Pipeline execution timed out. The graph may be stuck or the API is slow.")
+    except Exception as e:
+        print(f"ERROR: Pipeline execution failed: {str(e)}")
+        raise
 
     # for event in graph.stream(initial_input, thread_config):
     #     print(f"Completed node: {list(event.keys())[0]}")
     # print(f"Current state: {graph.get_state(thread_config)}")
     # final_blog = graph.get_state(thread_config)["agent_4"]
     
-    print(f"Final blog content: { final_blog["final_blog"]}")
+    print(f"Final blog content: {final_blog['final_blog']}")
     return {"final_blog": final_blog["final_blog"]}
     # Inspect pause state
     # state = graph.get_state(thread_config)
