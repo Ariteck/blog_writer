@@ -1,0 +1,17 @@
+FROM python:3.14.0a4-slim  # Recommended slim image for smaller image size and faster cold starts
+
+WORKDIR /app
+ENV PYTHONPATH=/app
+
+# Vercel handles PORT dynamically (defaults to 80)
+ENV PORT=80
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src ./src
+COPY run.py .
+# Note: Do not rely on COPY .env in production; set environment variables in Vercel's Dashboard
+
+# Listen on 0.0.0.0 and dynamically bind to $PORT
+CMD ["python", "run.py"]
